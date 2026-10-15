@@ -1,7 +1,8 @@
 # Demo product photography
 
-Bundled locally so the demo feed works offline. Sample product names, prices,
-ratings, and categories are fictional and are not live inventory.
+Legacy bundled assets from the starter demo. The Frappe feed does not use these
+photos or the old fictional prices/ratings. Its product DocType has no image
+field, so the active UI uses a neutral category illustration instead.
 
 Photos provided by [Unsplash](https://unsplash.com/license):
 

@@ -1,5 +1,9 @@
 # Configuration
 
+`frappe.js` defines HTTP/socket origins, site namespace, and request timeout.
+Its localhost URLs work with `npm run device` for Android USB development.
+Use HTTPS origins for a deployed backend.
+
 Keep environment selection, validated public settings, and feature flags here
 when needed. Read and validate settings in one place instead of reading
 environment variables throughout screens and services.

@@ -11,18 +11,23 @@ From `C:\Forrce\RealTime`:
 
 ```powershell
 npm ci
+npm run device
 npm start
 ```
 
 Keep Metro running. In another terminal at the project root:
 
 ```powershell
-npm run android -- --active-arch-only
+npm run android -- --active-arch-only --no-packager
 ```
 
-The first Android build downloads Gradle, Maven dependencies, and missing SDK
-packages. The Gradle wrapper allows a 120-second download timeout. For a physical
-USB device, if the app cannot reach Metro, run `adb reverse tcp:8081 tcp:8081`.
+Keep the Frappe bench running in WSL. `npm run device` connects the USB phone
+to Metro, Frappe HTTP, and Frappe Socket.IO. Re-run it after reconnecting USB.
+The first build downloads missing Android dependencies.
+
+Connection settings live in `src/config/frappe.js`. Read the
+[phase-one setup and manual test guide](docs/phase-one-testing.md) for backend
+setup, independent buyer/seller sessions, and troubleshooting.
 
 For iOS, use macOS with Xcode, run `bundle install` at the root and
 `bundle exec pod install` inside `ios`, then run `npm run ios` from the root.
@@ -45,8 +50,8 @@ Start editing the product feed in
 
 Read [the architecture guide](docs/architecture.md) for dependency rules,
 feature templates, naming, state ownership, and where future integrations belong.
-The services, config, and assets folders contain guidance until implementations
-are needed.
+Authentication and marketplace providers handle sessions and server data;
+screens consume those providers rather than making network calls directly.
 
 ## Checks
 
@@ -57,11 +62,14 @@ npm test -- --runInBand
 
 ## Current screens
 
-- Home: a scrollable, two-column feed with six bundled demo products and category filters.
-- Profile, Orders, More: empty screens connected to the bottom tabs.
+- Splash and Login: restore a secure session or sign in with your Frappe account.
+- Home: live Frappe products in two columns, category filters, and quantity-based ordering.
+- Profile: Frappe identity, roles, summary, and sign out.
+- Orders: buyer purchases, seller inbox, and live order-status updates.
+- More: connection diagnostics, reconnect, and the latest live events.
 - Search and Chat: empty stack screens with back navigation.
 - Hamburger menu: a dismissible drawer with links to all four tabs.
 
-Navigation is composed in `src/app/navigation/RootNavigator.jsx`. Demo products
-live in `src/features/feed/data/products.js`. Shared colors live in
-`src/shared/theme/theme.js`.
+Navigation is composed in `src/app/navigation/RootNavigator.jsx`. Frappe product
+and order methods live in `src/features/marketplace/api/marketplace.js`.
+Shared colors live in `src/shared/theme/theme.js`.

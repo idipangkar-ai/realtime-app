@@ -1,8 +1,8 @@
 ﻿# App architecture
 
 The app uses feature-based organization. Keep code close to the behavior it
-supports and extract shared code when it is reused. The feed owns the demo
-catalog; the other features currently provide empty navigation destinations.
+supports and extract shared code when it is reused. Auth owns account sessions;
+marketplace owns Frappe catalog/order state and realtime synchronization.
 
 ## Directory map
 
@@ -15,22 +15,25 @@ src/
     navigation/                 Root stack, bottom tabs, and menu drawer
     providers/AppProviders.jsx  App-wide provider composition
   features/
+    auth/                       Splash, login, and secure session lifecycle
+    marketplace/                Catalog/order APIs, data provider, live state
     feed/
       index.js                  Feature's public exports
       screens/FeedScreen.jsx    Feed feature entry screen
-      components/               Product cards
-      data/products.js          Demo catalog and category definitions
+      components/               Product cards and order confirmation sheet
     chat/                       Empty Chat destination
     search/                     Empty Search destination
-    profile/                    Empty Profile tab
-    orders/                     Empty Orders tab
-    more/                       Empty More tab
+    profile/                    Frappe identity, summary, and sign out
+    orders/                     Buyer orders and seller status controls
+    more/                       Connection diagnostics and event history
   shared/
     components/Screen.jsx       Reusable screen layout
     components/                 Shared header, icon buttons, and SVG icons
     theme/theme.js              Shared color palette
-  services/                     Shared external integrations
-  config/                       Public environment settings and flags
+  services/frappe/              HTTP, session headers, CSRF, error handling
+  services/realtime/            Authenticated Socket.IO connection factory
+  services/storage/             Keychain-backed session storage
+  config/frappe.js              Public HTTP/socket/site connection settings
   assets/                       Shared bundled assets
 docs/                           Architecture and development notes
 __tests__/                      App-level integration/smoke tests
@@ -38,8 +41,10 @@ android/                        Android native project
 ios/                            iOS native project
 ```
 
-`services` and `config` currently contain placement guidance. Add implementations
-when required by a feature. `assets/products` contains bundled demo photography.
+`integrations/frappe/mobile.py` is the backend session endpoint, also installed
+in the local WSL custom app. `scripts/connect-android.ps1` prepares USB development
+connections. The old `assets/products` photos are retained as starter assets;
+the live catalog does not use them because the backend has no image field.
 
 ## Dependency rules
 
@@ -88,10 +93,15 @@ at the feature boundary. Avoid network calls directly inside UI components.
 
 The root navigator lives in `app/navigation`, importing screens through feature
 entry points. A native stack owns Search and Chat, and wraps the Home, Profile,
-Orders, and More bottom tabs. The hamburger menu links to those same tab routes.
-React Navigation manages back behavior and tab state. Local category-filter
-state stays inside the feed. Add session and query-cache providers to
-`AppProviders` as their dependencies are introduced.
+Orders, and More bottom tabs. Unauthenticated users see Login; splash handles
+session restoration. Conditional navigator groups remove account screens on
+sign-out. The hamburger menu links to the same tab routes.
+
+`AppProviders` composes SafeAreaProvider, AuthProvider, then MarketplaceProvider.
+The marketplace provider refreshes after order events, reconnects, and app resume.
+It ignores results from old account sessions, combines overlapping refreshes,
+and removes socket listeners on logout/unmount. Feed category and quantity state
+stay local to their UI. Errors preserve already loaded data for retry.
 
 ## Verification
 

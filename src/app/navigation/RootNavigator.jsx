@@ -18,6 +18,7 @@ import { ChatScreen } from '../../features/chat';
 import { AppHeader } from '../../shared/components/AppHeader';
 import { colors } from '../../shared/theme/theme';
 import { MenuDrawer } from './MenuDrawer';
+import { LoginScreen, SplashScreen, useAuth } from '../../features/auth';
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
@@ -94,6 +95,9 @@ function renderStackHeader({ navigation, route }) {
 }
 
 export function RootNavigator() {
+  const { session, booting, bootError } = useAuth();
+  if (booting || bootError) return <SplashScreen />;
+
   return (
     <NavigationContainer theme={theme}>
       <Stack.Navigator
@@ -102,13 +106,23 @@ export function RootNavigator() {
           contentStyle: styles.content,
         }}
       >
-        <Stack.Screen
-          name="Main"
-          component={MainTabs}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="Search" component={SearchScreen} />
-        <Stack.Screen name="Chat" component={ChatScreen} />
+        {session ? (
+          <Stack.Group navigationKey={session.user.name}>
+            <Stack.Screen
+              name="Main"
+              component={MainTabs}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen name="Chat" component={ChatScreen} />
+          </Stack.Group>
+        ) : (
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
